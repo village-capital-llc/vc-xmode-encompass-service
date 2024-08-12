@@ -11,7 +11,16 @@ def transfer_file_to_archive(sftp, source_path):
     
     try:
         
-        destination_path = "Archive/" + source_path.split('/', 1)[-1]
+        json_path = source_path.split('/', 1)[-1]
+        destination_path = "Archive/" + json_path
+        archive_list = sftp.listdir("Archive")
+        print(f"json_path: {json_path} Archive file list: {archive_list}")
+        
+        if json_path in archive_list:
+            print(f'File already exist in Archive folder: {destination_path} ')
+            sftp.remove(destination_path)
+            print(f"Existing file {destination_path} is removed")
+            
         sftp.rename(source_path, destination_path)
         print(f"Moved {source_path} to {destination_path} Status: Success")
         
