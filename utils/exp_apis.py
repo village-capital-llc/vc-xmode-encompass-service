@@ -293,10 +293,11 @@ def create_new_document(api_server, loan_guid, access_token, doc_title):
     document_id = None
     try:
         response = requests.request("PATCH", url, headers=headers, data=payload)
+        print(response.text)
         json_dict = json.loads(response.text)
         document_id = json_dict[0]['id']
     except Exception as e:
         print(e)
-        raise Exception('Unable to create_new_document in econnect')
+        return document_id
     
     return document_id
