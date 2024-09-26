@@ -109,16 +109,17 @@ def main(event, context):
             efolder_file_id = find_efolder_mapping_id(econnect_document_list, efolder_file_name)
         print(f'efolder_file_id : {efolder_file_id}')
         
-        # # create new file id at econnect
-        # if efolder_file_name and efolder_file_id == None:
-        #     print('create new document on econnect')
-        #     efolder_file_id = create_new_document(api_server, loan_guid, access_token, efolder_file_name)
+        # create new file id at econnect
+        if efolder_file_name and efolder_file_id == None:
+            print('create new document on econnect')
+            efolder_file_id = create_new_document(api_server, loan_guid, access_token, efolder_file_name)
             
-        #     econnect_document_list.append({
-        #         'id': efolder_file_id,
-        #         'title': efolder_file_name
-        #     })
-        #     print(f'new efolder_file_id : {efolder_file_id}')
+            if efolder_file_id != None:
+                econnect_document_list.append({
+                    'id': efolder_file_id,
+                    'title': efolder_file_name
+                })
+            print(f'new efolder_file_id : {efolder_file_id}')
         
         # push message for sqs
         msg_obj = {
