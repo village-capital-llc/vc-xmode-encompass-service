@@ -5,6 +5,7 @@ from utils.exp_apis import _get_loan_guid as GET_LOAN_GUID
 from utils.exp_apis import get_all_retrieve_documents, create_new_document
 from utils.storage import get_pdf_from_sftp, get_pdfjson_from_sftp
 from utils.sftp_file_transfer import transfer_file_to_archive
+from utils.ses_notifications import send_ses_message
 import urllib.parse
 import json
 import threading
@@ -45,6 +46,11 @@ def main(event, context):
     if loan_number is None:
         raise Exception('Invalid loanNumber in sftp json data')
     
+    subject = f"Loan {loan_number} – Submitted to Setup "
+    message = f"Loan Package {loan_number} been reviewed in DASH and has been submitted to Setup."
+    
+    send_ses_message(secrets_dict, subject, message, loan_number)
+
     # get secret values from secrets_dict
     api_server = secrets_dict['ENCOMPASS_API_SERVER']
     instance_id = secrets_dict['ENCOMPASS_INSTANCE_ID']
