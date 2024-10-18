@@ -21,19 +21,10 @@ def main(event, context):
         raise Exception('Invalid input json path')
     
     # Load secrets values
-    secrets_dict = get_secrets()
-    if secrets_dict is None:
-        raise Exception('Invalid Secrets values')
+    secrets_dict = get_secrets()    
 
-    # read input json file from sftp
-    json_pdf_data = None
-    try:
-        json_pdf_data = get_pdfjson_from_sftp(json_file_path, secrets_dict)
-    except Exception as e:
-        print(e)
-        raise Exception(f'Unable to load json data from path: {json_file_path}')
-    
-    # print(json.dumps(json_pdf_data))
+    # read input json file from sftp        
+    json_pdf_data = get_pdfjson_from_sftp(json_file_path, secrets_dict)
 
     json_pdf_data_details = json_pdf_data.get('details' , None)
     if json_pdf_data_details is None or len(json_pdf_data_details) == 0:
@@ -79,9 +70,7 @@ def main(event, context):
     print(f'loan_guid = {loan_guid}')
     
     # load dash_efolder_mapping as dict
-    dash_efolder_mapping_dict = load_dash_efolder_mapping('dash_efolder_mapping.json')
-    if dash_efolder_mapping_dict is None:
-        raise Exception('Unable to load dash_efolder_mapping')
+    dash_efolder_mapping_dict = load_dash_efolder_mapping('dash_efolder_mapping.json')    
     
     # get all document from get_all_retrieve_documents econnect api
     econnect_document_list = get_all_retrieve_documents(api_server, loan_guid, access_token)
@@ -105,51 +94,53 @@ def main(event, context):
         
         # get efolder file name from dash file name
         efolder_file_name = dash_efolder_mapping_dict.get(file_name, None)
-        if efolder_file_name == "nan" or efolder_file_name == "Need to discuss with Moder further":
-            efolder_file_name = None
-        print(f'efolder_file_name : {efolder_file_name}')
+        efolder_file_name_list = []
+        if "*" in efolder_file_name:
+            efolder_file_name_list = efolder_file_name.split('*')
+        else:
+            efolder_file_name_list.append(efolder_file_name)
+        print(f'efolder_file_name : {efolder_file_name_list}')
         
-        # get efolder file id
-        efolder_file_id = None
-        if efolder_file_name:
-            efolder_file_id = find_efolder_mapping_id(econnect_document_list, efolder_file_name)
-        print(f'efolder_file_id : {efolder_file_id}')
-        
-        # create new file id at econnect
-        if efolder_file_name and efolder_file_id == None:
-            print('create new document on econnect')
-            efolder_file_id = create_new_document(api_server, loan_guid, access_token, efolder_file_name)
+        for efolder_file_name in efolder_file_name_list:
+
+            # get efolder file id
+            efolder_file_id = None
+            if efolder_file_name:
+                efolder_file_id = find_efolder_mapping_id(econnect_document_list, efolder_file_name)
+            print(f'efolder_file_id : {efolder_file_id}')
             
-            if efolder_file_id != None:
-                econnect_document_list.append({
-                    'id': efolder_file_id,
-                    'title': efolder_file_name
-                })
-            print(f'new efolder_file_id : {efolder_file_id}')
-        
-        # push message for sqs
-        msg_obj = {
-            'sftp_file_path': file_path,
-            'title': file_name,
-            'entityId': efolder_file_id,
-            'efolder_file_name': efolder_file_name,
-            'loan_guid': loan_guid,
-            'loan_number': loan_number
-        }
-        
-        print(json.dumps(msg_obj))
-        
-        try:
+            # create new file id at econnect
+            if efolder_file_name and efolder_file_id == None:
+                print('create new document on econnect')
+                efolder_file_id = create_new_document(api_server, loan_guid, access_token, efolder_file_name)
+                
+                if efolder_file_id != None:
+                    econnect_document_list.append({
+                        'id': efolder_file_id,
+                        'title': efolder_file_name
+                    })
+                print(f'new efolder_file_id : {efolder_file_id}')
+            
+            # push message for sqs
+            msg_obj = {
+                'sftp_file_path': file_path,
+                'title': file_name,
+                'entityId': efolder_file_id,
+                'efolder_file_name': efolder_file_name,
+                'loan_guid': loan_guid,
+                'loan_number': loan_number
+            }
+            
+            print(json.dumps(msg_obj))
+                        
             sqs_msg_id = send_msg_sqs(json.dumps(msg_obj))
             print(f'sqs_msg_id = {sqs_msg_id}')
-        except Exception as e:
-            print(e)
-            raise Exception('Unable to send message to sqs')
-        
-        # stop condition, used for testing code
-        # if processed_files > 1:
-        #     break
-        
+            
+            
+            # stop condition, used for testing code
+            # if processed_files > 1:
+            #     break
+            
     
     #Move json file to Archive
     transfer_file_to_archive(secrets_dict, json_file_path)
