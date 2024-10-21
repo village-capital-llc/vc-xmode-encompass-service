@@ -100,7 +100,7 @@ def main(event, context):
             efolder_file_name_list = efolder_file_name.split('*')
         else:
             efolder_file_name_list.append(efolder_file_name)
-        print(f'efolder_file_name : {efolder_file_name_list}')
+        print(f'efolder_file_name_list : {efolder_file_name_list}')
         
         for efolder_file_name in efolder_file_name_list:
 
