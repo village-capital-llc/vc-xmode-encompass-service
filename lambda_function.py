@@ -95,7 +95,8 @@ def main(event, context):
         # get efolder file name from dash file name
         efolder_file_name = dash_efolder_mapping_dict.get(file_name, None)
         efolder_file_name_list = []
-        if "*" in efolder_file_name:
+
+        if efolder_file_name and "*" in efolder_file_name:
             efolder_file_name_list = efolder_file_name.split('*')
         else:
             efolder_file_name_list.append(efolder_file_name)
@@ -134,13 +135,7 @@ def main(event, context):
             print(json.dumps(msg_obj))
                         
             sqs_msg_id = send_msg_sqs(json.dumps(msg_obj))
-            print(f'sqs_msg_id = {sqs_msg_id}')
-            
-            
-            # stop condition, used for testing code
-            # if processed_files > 1:
-            #     break
-            
+            print(f'sqs_msg_id = {sqs_msg_id}')            
     
     #Move json file to Archive
     transfer_file_to_archive(secrets_dict, json_file_path)
