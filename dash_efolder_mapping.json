@@ -153,7 +153,6 @@
     "Appraised Value Disclosure": "252 - Appraisal: Copy Delivered to borrower",
     "VIN Validation": "253 - Manufactured Home Documentation",
     "Manufactured Home Disclosure": "253 - Manufactured Home Documentation",
-    "Affidavit of Affixture": "253 - Manufactured Home Documentation",
     "Manufactured Home- Misc": "253 - Manufactured Home Documentation",
     "Survey / Plat map": "254 - Survey",
     "Survey/ Affidavit in Lieu": "254 - Survey",
@@ -308,7 +307,6 @@
     "Predatory Fee Test Results": "414 - Compliance Report",
     "QM Status Report": "414 - Compliance Report",
     "Fraud Report (LOS)": "414 - Fraud",
-    "High Cost/ Section 32 Test": "414 - Fraud",
     "Attorney Preference Notice": "417 - SC Attorney and Regulatory Disclosures (Signed)?",
     "Escrow Instructions": "419 - Escrow Instructions",
     "Closing Agent Wire Instructions": "420 - Wiring Instructions",
@@ -417,7 +415,7 @@
     "Funding - Miscellaneous": "700 - Disbursment Sheet (funding)",
     "Disbursement Records": "700 - Disbursment Sheet (funding)",
     "MERS": "702 - MERS Registration",
-    "Itemization of Settlement Charges": "703 - Settlement Statement",
+    "Itemization of Settlement Charges": "200 - Underwriting File Docs",
     "ALTA Settlement Statement": "703 - Settlement Statement",
     "Closing Appointment Confirmation": "703 - Settlement Statement",
     "Bailee Letter": "711 - Bailee Letter",
@@ -680,5 +678,12 @@
     "LM - Executed Freedom COVID-19 Hardship Attestation Form": "200 - Underwriting File Docs",
     "SCRA Extension of Benefits": "200 - Underwriting File Docs",
     "Flood Lender Placed Letters": "200 - Underwriting File Docs",
-    "Hazard Lender Placed Letters": "200 - Underwriting File Docs"
+    "Hazard Lender Placed Letters": "200 - Underwriting File Docs",
+    "Affidavit of Affixture":"507- Riders",
+    "High Cost/ Section 32 Test":"414 - Compliance Report",
+    "Manufactured Home Affidavit of Affix":"507 Rider",
+    "Payoff Statement":"204 - Payoff Statement",
+    "Transaction History":"221 - Mortgage Payment History",
+    "Compliance Agreement (going into the wrong 527)":"527 - Errors and Omissions",
+    "Credit Score Disclosure (currently going to 115)": "115 - Credit Score Disclosure"
 }
