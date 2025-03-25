@@ -1,5 +1,5 @@
 from utils.aws_resources import get_pdf_from_storage, get_secrets, send_msg_sqs
-from utils.misc import get_file_metadata, get_pdf_from_local_storage, is_valid_pdf, load_dash_efolder_mapping, find_efolder_mapping_id
+from utils.misc import get_file_metadata, get_pdf_from_local_storage, load_dash_efolder_mapping, find_efolder_mapping_id
 from utils.exp_apis import _get_access_token as GET_ACCESS_TOKEN
 from utils.exp_apis import _get_loan_guid as GET_LOAN_GUID
 from utils.exp_apis import get_all_retrieve_documents, create_new_document
@@ -12,7 +12,6 @@ import threading
 
 def main(event, context):
     # log input event
-    print(json.dumps(event))
 
     # get input json sftp path
     try:
@@ -96,6 +95,8 @@ def main(event, context):
         efolder_file_name = dash_efolder_mapping_dict.get(file_name, None)
         efolder_file_name_list = []
 
+        print(f"loan {loan_id} file_name {file_name} efolder_file_name {efolder_file_name} ")
+        
         if efolder_file_name and "*" in efolder_file_name:
             efolder_file_name_list = efolder_file_name.split('*')
         else:
