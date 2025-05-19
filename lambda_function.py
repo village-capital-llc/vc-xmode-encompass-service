@@ -21,7 +21,8 @@ def main(event, context):
         raise Exception('Invalid input json path')
     
     # Load secrets values
-    secrets_dict = get_secrets()    
+    secrets_dict = get_secrets()  
+    AUDIT_LOG_TABLE_NAME = secrets_dict['AUDIT_LOG_TABLE_NAME']
 
     # read input json file from sftp        
     json_pdf_data = get_pdfjson_from_sftp(json_file_path, secrets_dict)
@@ -82,11 +83,11 @@ def main(event, context):
     package_id = json_pdf_data_details[0].get('packageId', None)
 
     try:
-        loan_status_record = get_oldest_record(loan_number)
+        loan_status_record = get_oldest_record(AUDIT_LOG_TABLE_NAME, loan_number)
         if loan_status_record:
             print(f'loan_status_record : {loan_status_record}')
             # update process status
-            update_process_status('IN_PROGRESS', package_id, total_files, loan_status_record)
+            update_process_status(AUDIT_LOG_TABLE_NAME, 'InProgress', package_id, total_files, loan_status_record)
             print(f'Updated loan status in dynamo db for loan_number = {loan_number} and package_id = {package_id}')
     except Exception as e:
         print(e)
