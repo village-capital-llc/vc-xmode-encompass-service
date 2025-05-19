@@ -87,7 +87,7 @@ def main(event, context):
         if loan_status_record:
             print(f'loan_status_record : {loan_status_record}')
             # update process status
-            update_process_status(AUDIT_LOG_TABLE_NAME, 'InProgress', package_id, total_files, loan_status_record)
+            update_process_status(AUDIT_LOG_TABLE_NAME, 'ProcessedByIDP', package_id, total_files, loan_status_record)
             print(f'Updated loan status in dynamo db for loan_number = {loan_number} and package_id = {package_id}')
     except Exception as e:
         print(e)
