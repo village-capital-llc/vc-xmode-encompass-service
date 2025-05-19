@@ -6,6 +6,7 @@ from utils.exp_apis import get_all_retrieve_documents, create_new_document
 from utils.storage import get_pdf_from_sftp, get_pdfjson_from_sftp
 from utils.sftp_file_transfer import transfer_file_to_archive
 from utils.ses_notifications import send_ses_message
+from utils.db_helper import get_oldest_record, update_process_status
 import urllib.parse
 import json
 import threading
@@ -78,6 +79,18 @@ def main(event, context):
     # loop all files in sftp json
     total_files = len(json_pdf_data_details)
     processed_files = 0
+    package_id = json_pdf_data_details[0].get('packageId', None)
+
+    try:
+        loan_status_record = get_oldest_record(loan_number)
+        if loan_status_record:
+            print(f'loan_status_record : {loan_status_record}')
+            # update process status
+            update_process_status('IN_PROGRESS', package_id, total_files, loan_status_record)
+            print(f'Updated loan status in dynamo db for loan_number = {loan_number} and package_id = {package_id}')
+    except Exception as e:
+        print(e)
+        print(f'Unable to fetch loan status from dynamo db for loan_number = {loan_number}')
     
     for file_detail in json_pdf_data_details:
         processed_files = processed_files + 1
