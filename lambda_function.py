@@ -152,6 +152,7 @@ def main(event, context):
                 'entityId': efolder_file_id,
                 'efolder_file_name': efolder_file_name,
                 'description': description[0] if description else "" ,
+                'packageId': package_id,
                 'loan_guid': loan_guid,
                 'loan_number': loan_number,
                 'final_pdf':final_pdf
