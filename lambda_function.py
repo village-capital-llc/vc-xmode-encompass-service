@@ -121,8 +121,9 @@ def main(event, context):
         
         for index, efolder_file_name_desc in enumerate(efolder_file_name_list):
 
-            efolder_file_name, *description = efolder_file_name_desc.split('~')
+            efolder_file_name, *description = efolder_file_name_desc.split('~') if efolder_file_name_desc else [None]
 
+            logger.info(f"{efolder_file_name} {description}")
             # get efolder file id
             efolder_file_id = None
             if efolder_file_name:
