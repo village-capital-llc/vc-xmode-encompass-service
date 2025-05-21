@@ -27,7 +27,9 @@ def get_oldest_record(table_name: str, loan_id: str) -> dict:
         Limit=1  # Retrieve the first (oldest) item
     )
 
-    if 'Items' in response:
+    print(f'get_oldest_record response : {response}')
+
+    if 'Items' in response and len(response['Items']) > 0:
         return response['Items'][0]
     else:
         return None
