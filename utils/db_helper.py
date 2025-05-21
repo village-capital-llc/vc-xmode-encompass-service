@@ -22,7 +22,7 @@ def get_oldest_record(table_name: str, loan_id: str) -> dict:
 
     response = table.query(
         KeyConditionExpression=boto3.dynamodb.conditions.Key('loan_id').eq(loan_id),
-        FilterExpression=boto3.dynamodb.conditions.Attr('status').eq('IN_PROGRESS') & boto3.dynamodb.conditions.Attr('package_id').not_exists(),
+        FilterExpression=boto3.dynamodb.conditions.Attr('status').eq('InProgress') & boto3.dynamodb.conditions.Attr('package_id').not_exists(),
         ScanIndexForward=True,  # Sort results in ascending order
         Limit=1  # Retrieve the first (oldest) item
     )
