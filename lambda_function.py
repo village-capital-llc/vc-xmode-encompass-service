@@ -94,6 +94,7 @@ def main(event, context):
             logger.info(f'Updated loan status in dynamo db for loan_number = {loan_number} and package_id = {package_id}')
     except Exception as e:
         logger.info(e)
+        logger.exception(e)
         logger.info(f'Unable to fetch loan status from dynamo db for loan_number = {loan_number}')
     
     for file_detail in json_pdf_data_details:
