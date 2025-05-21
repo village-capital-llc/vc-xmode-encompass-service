@@ -1,3 +1,4 @@
+from loguru import logger
 from utils.aws_resources import get_pdf_from_storage, get_secrets, send_msg_sqs
 from utils.misc import get_file_metadata, get_pdf_from_local_storage, load_dash_efolder_mapping, find_efolder_mapping_id
 from utils.exp_apis import _get_access_token as GET_ACCESS_TOKEN
@@ -15,6 +16,7 @@ def main(event, context):
     # log input event
 
     # get input json sftp path
+    logger.info(f"event {event}")
     try:
         json_file_path = event['detail']['object']['key']
     except Exception as e:
@@ -34,7 +36,7 @@ def main(event, context):
 
     # get loan_number from sftp json file
     loan_number = json_pdf_data_details[0].get('loanNumber', None)
-    print(f'loan_number = {loan_number}')
+    
     if loan_number is None:
         raise Exception('Invalid loanNumber in sftp json data')
     
@@ -68,30 +70,31 @@ def main(event, context):
         print(e)
         raise Exception(f'Unable to fetch loan_guid from e-connect api for loan_number = {loan_number}')
     
-    print(f'loan_guid = {loan_guid}')
+
     
     # load dash_efolder_mapping as dict
     dash_efolder_mapping_dict = load_dash_efolder_mapping('dash_efolder_mapping.json')    
     
     # get all document from get_all_retrieve_documents econnect api
     econnect_document_list = get_all_retrieve_documents(api_server, loan_guid, access_token)
-    print(f'econnect_document_list length = {len(econnect_document_list)}')
+    logger.info(f'econnect_document_list length = {len(econnect_document_list)}')
     
     # loop all files in sftp json
     total_files = len(json_pdf_data_details)
     processed_files = 0
     package_id = json_pdf_data_details[0].get('packageId', None)
 
+    # Store record into DDB
     try:
         loan_status_record = get_oldest_record(AUDIT_LOG_TABLE_NAME, loan_number)
         if loan_status_record:
-            print(f'loan_status_record : {loan_status_record}')
+            logger.info(f'{loan_number} loan_status_record : {loan_status_record}')
             # update process status
             update_process_status(AUDIT_LOG_TABLE_NAME, 'ProcessedByIDP', package_id, total_files, loan_status_record)
-            print(f'Updated loan status in dynamo db for loan_number = {loan_number} and package_id = {package_id}')
+            logger.info(f'Updated loan status in dynamo db for loan_number = {loan_number} and package_id = {package_id}')
     except Exception as e:
-        print(e)
-        print(f'Unable to fetch loan status from dynamo db for loan_number = {loan_number}')
+        logger.info(e)
+        logger.info(f'Unable to fetch loan status from dynamo db for loan_number = {loan_number}')
     
     for file_detail in json_pdf_data_details:
         processed_files = processed_files + 1
@@ -99,35 +102,35 @@ def main(event, context):
         file_path = file_detail['docPath']
         file_name = file_detail['docName']
         loan_id = file_detail['loanNumber']
-        print('-' * 50)
-        print(f'processing_files : {processed_files} out of {total_files}')
-        print('file_name', file_name)
-        print('file_path', file_path)
-        print('loan_id', loan_id)
+        
+        logger.info(f'processing_files : {processed_files} out of {total_files}')
+        logger.info(f'{loan_id} {file_path} {file_name}')
         
         # get efolder file name from dash file name
         efolder_file_name = dash_efolder_mapping_dict.get(file_name, None)
         efolder_file_name_list = []
 
-        print(f"loan {loan_id} file_name {file_name} efolder_file_name {efolder_file_name} ")
+        logger.info(f"loan {loan_id} file_name {file_name} efolder_file_name {efolder_file_name} ")
         
         if efolder_file_name and "*" in efolder_file_name:
             efolder_file_name_list = efolder_file_name.split('*')
         else:
             efolder_file_name_list.append(efolder_file_name)
-        print(f'efolder_file_name_list : {efolder_file_name_list}')
+        logger.info(f'efolder_file_name_list {efolder_file_name_list}')
         
-        for index, efolder_file_name in enumerate(efolder_file_name_list):
+        for index, efolder_file_name_desc in enumerate(efolder_file_name_list):
+
+            efolder_file_name, *description = efolder_file_name_desc.split('~')
 
             # get efolder file id
             efolder_file_id = None
             if efolder_file_name:
                 efolder_file_id = find_efolder_mapping_id(econnect_document_list, efolder_file_name)
-            print(f'efolder_file_id : {efolder_file_id}')
+            logger.info(f'efolder_file_id {efolder_file_id}')
             
             # create new file id at econnect
             if efolder_file_name and efolder_file_id == None:
-                print('create new document on econnect')
+                
                 efolder_file_id = create_new_document(api_server, loan_guid, access_token, efolder_file_name)
                 
                 if efolder_file_id != None:
@@ -135,7 +138,7 @@ def main(event, context):
                         'id': efolder_file_id,
                         'title': efolder_file_name
                     })
-                print(f'new efolder_file_id : {efolder_file_id}')
+                logger.info(f'new efolder_file_id {efolder_file_id}')
             
             final_pdf = 0
             if index == len(efolder_file_name_list)-1:
@@ -146,15 +149,14 @@ def main(event, context):
                 'title': file_name,
                 'entityId': efolder_file_id,
                 'efolder_file_name': efolder_file_name,
+                'description': description[0] if description else "" ,
                 'loan_guid': loan_guid,
                 'loan_number': loan_number,
                 'final_pdf':final_pdf
             }
-            
-            print(json.dumps(msg_obj))
                         
             sqs_msg_id = send_msg_sqs(json.dumps(msg_obj))
-            print(f'sqs_msg_id = {sqs_msg_id}')            
+            logger.info(f'sqs_msg_id {sqs_msg_id} {json.dumps(msg_obj)}')            
     
     #Move json file to Archive
     transfer_file_to_archive(secrets_dict, json_file_path)
