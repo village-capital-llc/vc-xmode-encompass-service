@@ -1,6 +1,10 @@
 
 import paramiko
+import uuid
+from tenacity import retry, stop_after_attempt, wait_fixed
+from loguru import logger
 
+@retry(stop=stop_after_attempt(3), reraise=True, wait=wait_fixed(5))
 def transfer_file_to_archive(secrets_dict, source_path):
     
     """
@@ -24,30 +28,20 @@ def transfer_file_to_archive(secrets_dict, source_path):
         transport.connect(username=SFTP_USERNAME, password=SFTP_PRIVATE_KEY)
         
         sftp = paramiko.SFTPClient.from_transport(transport)
-        print("SFTP connection is stablished")
+        logger.info("SFTP connection is stablished")
     
         json_path = source_path.split('/', 1)[-1]
         destination_path = "Archive/" + json_path
         
-        try:
-            
-            archive_list = sftp.listdir("Archive")
-            print(f"json_path: {json_path} Archive file list: {archive_list}")
-            
-            sftp.remove(destination_path)
-            print(f"Existing file {destination_path} is removed from archive")
-        
-        except Exception as exc:
-            pass
-            
+        guid = uuid.uuid4()
+        destination_path = destination_path.replace(".", "-guid-" + str(guid)+".")            
             
         sftp.rename(source_path, destination_path)
-        print(f"Moved {source_path} to {destination_path} Status: Success")
+        logger.info(f"Moved {source_path} to {destination_path} Success")
         
         transport.close()
         
     except Exception as exc:
-        
-        print(f"Exception: {exc}")
-        print(f"Unable to move to Archive folder: {source_path}")
+        logger.info(f"Exception: {exc}")
+        logger.info(f"Unable to move to Archive folder {source_path}")
             
